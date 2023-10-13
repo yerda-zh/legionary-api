@@ -23,7 +23,7 @@ app.post("/chat", async (req, res) => {
             messages: [
               {
                 role: "user",
-                content: `Create personalized workout routine for a ${answers[0]}, within age category of ${answers[1]}, goal - ${answers[2]}, body type - ${answers[3]}, level of body fat - ${answers[5]}, level of fitness - ${answers[6]}, place for workouts - ${answers[7]}, willing to spend ${answers[8]}`,
+                content: `Create personalized workout routine for a ${answers[0]}, within age category of ${answers[1]}, goal - ${answers[2]}, body type - ${answers[3]}, level of body fat - ${answers[5]}, level of fitness - ${answers[6]}, place for workouts - ${answers[7]}, willing to spend - ${answers[8]}. Use the following format for your response: "Introduction", "Equipment Needed", "Workout Routine for a week", "Advise".  Return as JSON array`,
               },
             ],
           })
