@@ -35,39 +35,39 @@ app.post("/chat", async (req, res) => {
         },
         routine: {
           type: "object",
-          description: "workout routine for a week",
+          description: "Workout routine for a week",
           properties: {
-            mon: {
+            monday: {
               type: "array",
               description: "Monday",
               items: { type: "string" },
             },
-            tue: {
+            tuesday: {
               type: "array",
               description: "Tuesday",
               items: { type: "string" },
             },
-            wed: {
+            wednesday: {
               type: "array",
               description: "Wednesday",
               items: { type: "string" },
             },
-            thu: {
+            thursday: {
               type: "array",
               description: "Thursday",
               items: { type: "string" },
             },
-            fri: {
+            friday: {
               type: "array",
               description: "Friday",
               items: { type: "string" },
             },
-            sat: {
+            saturday: {
               type: "array",
               description: "Saturday",
               items: { type: "string" },
             },
-            sun: {
+            sunday: {
               type: "array",
               description: "Sunday",
               items: { type: "string" },
