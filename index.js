@@ -4,6 +4,19 @@ const cors = require("cors");
 const app = express();
 require("dotenv").config();
 
+const bcrypt = require("bcrypt-nodejs");
+
+const knex = require("knex")({
+  client: "pg",
+  connection: {
+    host: "127.0.0.1",
+    port: 5432,
+    user: "postgres",
+    password: "yerda.Sql",
+    database: "legionary_database",
+  },
+});
+
 app.use(express.json());
 app.use(cors());
 
@@ -94,7 +107,9 @@ app.post("/chat", async (req, res) => {
         functions: [{ name: "workout_routine", parameters: schema }],
         function_call: { name: "workout_routine" },
       })
-      .then((res) => JSON.parse(res.choices[0].message.function_call.arguments));
+      .then((res) =>
+        JSON.parse(res.choices[0].message.function_call.arguments)
+      );
 
     return res.status(200).json({
       success: true,
@@ -127,4 +142,102 @@ app.post("/test", async (req, res) => {
         : "There was an issue on the server",
     });
   }
+});
+
+app.get("/profile/:id", (req, res) => {
+  const { id } = req.params;
+  knex
+    .select("*")
+    .from("users")
+    .where({ id })
+    .then((user) => {
+      if (user.length) {
+        res.json(user[0]);
+      } else {
+        res.status(400).json("Not Found");
+      }
+    })
+    .catch((err) => res.status(400).json("Error getting user"));
+});
+
+app.post("/register", (req, res) => {
+  const { email, name, password } = req.body;
+  const hash = bcrypt.hashSync(password);
+  knex
+    .transaction((trx) => {
+      trx
+        .insert({
+          hash: hash,
+          email: email,
+        })
+        .into("login")
+        .returning("email")
+        .then((loginEmail) => {
+          return trx("users")
+            .returning("*")
+            .insert({
+              email: loginEmail[0].email,
+              name: name,
+              joined: new Date(),
+            })
+            .then((user) => {
+              trx("workout")
+                .insert({
+                  user_id: user[0].id,
+                })
+                .then(res.json(user[0]));
+            });
+        })
+        .then(trx.commit)
+        .catch(trx.rollback);
+    })
+    .catch((err) => res.status(400).json("unable to register"));
+});
+
+app.post("/signin", (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json("incorrect form submission");
+  }
+  knex
+    .select("email", "hash")
+    .from("login")
+    .where("email", "=", email)
+    .then((data) => {
+      const isValid = bcrypt.compareSync(password, data[0].hash);
+      if (isValid) {
+        return knex
+          .select("*")
+          .from("users")
+          .where("email", "=", email)
+          .then((user) => res.json(user[0]))
+          .catch((err) => res.status(400).json("unable to get user"));
+      } else {
+        res.status(400).json("wrong credentials");
+      }
+    })
+    .catch((err) => res.status(400).json("wrong credentials"));
+});
+
+app.put("/save", (req, res) => {
+  const { id, routine } = req.body;
+
+  if (!id || !routine) {
+    return res.status(400).json("unable to save routine");
+  }
+
+  knex("workout")
+    .where({ user_id: id })
+    .update({
+      routine: routine,
+    })
+    .then((numUpdatedRows) => {
+      if (numUpdatedRows > 0) {
+        res.json({ message: "success" });
+      } else {
+        res.status(400).json("No such user");
+      }
+    })
+    .catch((err) => res.status(400).json(err));
 });
