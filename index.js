@@ -31,6 +31,9 @@ app.post("/chat", async (req, res) => {
   try {
     const { answers } = req.body;
 
+    if (answers.length === 0 ) {
+      return res.status(400).json("No data was provided.");
+    }
     // Create prompt text with user input
     const prompt = `Create personalized workout routine with sets and reps for a ${answers[0]}, within age category of ${answers[1]}, goal - ${answers[2]}, body type - ${answers[3]}, level of body fat - ${answers[5]}, level of fitness - ${answers[6]}, place for workouts - ${answers[7]}, willing to spend - ${answers[8]}.`;
     //Define the JSON Schema by creating a schema object
@@ -112,12 +115,10 @@ app.post("/chat", async (req, res) => {
       );
 
     return res.status(200).json({
-      success: true,
       data: response,
     });
   } catch (error) {
     return res.status(400).json({
-      success: false,
       error: error.response
         ? error.response.data
         : "There was an issue on the server",
@@ -162,7 +163,15 @@ app.get("/profile/:id", (req, res) => {
 
 app.post("/register", (req, res) => {
   const { email, name, password } = req.body;
-  const hash = bcrypt.hashSync(password);
+
+  if (!email || !password || !name) {
+    return res.status(400).json("Incorrect form submission");
+  } //checks whether front end provided data or not
+
+  const hash = bcrypt.hashSync(password); // to convert password into hash so that we can store them in database
+
+  // transaction allows to make multiple database operations
+  // firstly we store email and password to login then store email, name, joined to users, then store user id into workout table
   knex
     .transaction((trx) => {
       trx
@@ -208,8 +217,10 @@ app.post("/signin", (req, res) => {
       const isValid = bcrypt.compareSync(password, data[0].hash);
       if (isValid) {
         return knex
-          .select("*")
+          .select("users.id", "users.name", "users.email", "workout.routine")
           .from("users")
+          .join("workout", 'users.id', 'workout.user_id')
+          .select('workout.routine')
           .where("email", "=", email)
           .then((user) => res.json(user[0]))
           .catch((err) => res.status(400).json("unable to get user"));
@@ -227,6 +238,7 @@ app.put("/save", (req, res) => {
     return res.status(400).json("unable to save routine");
   }
 
+  // saves the workout routine as json into workout table where user id matches
   knex("workout")
     .where({ user_id: id })
     .update({
@@ -234,10 +246,11 @@ app.put("/save", (req, res) => {
     })
     .then((numUpdatedRows) => {
       if (numUpdatedRows > 0) {
-        res.json({ message: "success" });
+        res.status(200).json({ message: "success" });
       } else {
         res.status(400).json("No such user");
       }
     })
     .catch((err) => res.status(400).json(err));
 });
+
