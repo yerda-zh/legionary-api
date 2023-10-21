@@ -31,7 +31,7 @@ app.post("/chat", async (req, res) => {
   try {
     const { answers } = req.body;
 
-    if (answers.length === 0 ) {
+    if (answers.length === 0) {
       return res.status(400).json("No data was provided.");
     }
     // Create prompt text with user input
@@ -217,10 +217,17 @@ app.post("/signin", (req, res) => {
       const isValid = bcrypt.compareSync(password, data[0].hash);
       if (isValid) {
         return knex
-          .select("users.id", "users.name", "users.email", "workout.routine")
+          .select(
+            "users.id",
+            "users.name",
+            "users.email",
+            "users.bmi",
+            "users.joined",
+            "workout.routine"
+          )
           .from("users")
-          .join("workout", 'users.id', 'workout.user_id')
-          .select('workout.routine')
+          .join("workout", "users.id", "workout.user_id")
+          .select("workout.routine")
           .where("email", "=", email)
           .then((user) => res.json(user[0]))
           .catch((err) => res.status(400).json("unable to get user"));
@@ -232,25 +239,45 @@ app.post("/signin", (req, res) => {
 });
 
 app.put("/save", (req, res) => {
-  const { id, routine } = req.body;
+  const { id, bmi, routine } = req.body;
 
-  if (!id || !routine) {
+  if (!id || !bmi || !routine) {
     return res.status(400).json("unable to save routine");
   }
 
   // saves the workout routine as json into workout table where user id matches
-  knex("workout")
-    .where({ user_id: id })
-    .update({
-      routine: routine,
-    })
-    .then((numUpdatedRows) => {
-      if (numUpdatedRows > 0) {
-        res.status(200).json({ message: "success" });
-      } else {
-        res.status(400).json("No such user");
-      }
+  knex
+    .transaction((trx) => {
+      trx("workout")
+        .where({ user_id: id })
+        .update({
+          routine: routine,
+        })
+        .then((numUpdatedRows) => {
+          if (numUpdatedRows > 0) {
+            res.status(200).json({ message: "success" });
+          } else {
+            res.status(400).json("No such user");
+          }
+          return trx("users").where({ id: id }).update({
+            bmi: bmi,
+          });
+        })
+        .then(trx.commit)
+        .catch(trx.rollback);
     })
     .catch((err) => res.status(400).json(err));
+  // knex("workout")
+  //   .where({ user_id: id })
+  //   .update({
+  //     routine: routine,
+  //   })
+  //   .then((numUpdatedRows) => {
+  //     if (numUpdatedRows > 0) {
+  //       res.status(200).json({ message: "success" });
+  //     } else {
+  //       res.status(400).json("No such user");
+  //     }
+  //   })
+  //   .catch((err) => res.status(400).json(err));
 });
-
