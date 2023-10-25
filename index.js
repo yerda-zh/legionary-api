@@ -21,13 +21,13 @@ const openai = new OpenAI({
 
 // configuring knex.js which helps to write manage postgresql
 const dbConfig = {
-  client: 'pg',
+  client: process.env.DATABASE_CLIENT,
   connection: {
-    host: '127.0.0.1',
-    port: 5432,
-    user: 'postgres',
-    password: 'yerda.Sql',
-    database: 'legionary_database',
+    host: process.env.DATABASE_HOST,
+    port: process.env.DATABASE_PORT,
+    user: process.env.DATABASE_USER,
+    password: process.env.DATABASE_PW,
+    database: process.env.DATABASE_DB,
   },
 };
 
@@ -171,7 +171,7 @@ app.post("/register", async (req, res) => {
             .then((user) => {
               trx("workout")
                 .insert({
-                  user_id: user[0].id,
+                  email: user[0].email,
                 })
                 .then(res.json(user[0]));
             });
@@ -204,9 +204,9 @@ app.post("/signin", async (req, res) => {
           "workout.routine"
         )
         .from("users")
-        .join("workout", "users.id", "workout.user_id")
+        .join("workout", "users.email", "workout.email")
         .select("workout.routine")
-        .where("email", "=", email);
+        .where("users.email", "=", email);
 
       res.json(user[0]);
     } else {
@@ -218,9 +218,9 @@ app.post("/signin", async (req, res) => {
 });
 
 app.put("/save", (req, res) => {
-  const { id, bmi, routine } = req.body;
+  const { email, bmi, routine } = req.body;
 
-  if (!id || !bmi || !routine) {
+  if (!email || !bmi || !routine) {
     return res.status(400).json("Unable to save routine");
   }
 
@@ -228,7 +228,7 @@ app.put("/save", (req, res) => {
   database
     .transaction((trx) => {
       trx("workout")
-        .where({ user_id: id })
+        .where({ email })
         .update({routine})
         .then((numUpdatedRows) => {
           if (numUpdatedRows > 0) {
@@ -237,7 +237,7 @@ app.put("/save", (req, res) => {
             res.status(400).json("No such user");
           }
 
-          return trx("users").where({ id: id }).update({bmi});
+          return trx("users").where({ email }).update({bmi});
         })
         .then(trx.commit)
         .catch(trx.rollback);
@@ -246,19 +246,19 @@ app.put("/save", (req, res) => {
 });
 
 app.delete("/delete", (req, res) => {
-  const { id } = req.body;
+  const { email } = req.body;
 
-  if (!id) {
+  if (!email) {
     return res.status(400).json("Unable to delete the user");
   }
 
   database.transaction((trx) => {
-    trx("workout").where({ user_id: id }).del()
+    trx("workout").where({ email }).del()
       .then(() => {
-        return trx("login").where({ id }).del();
+        return trx("login").where({ email }).del();
       })
       .then(() => {
-        return trx("users").where({ id }).del();
+        return trx("users").where({ email }).del();
       })
       .then(trx.commit)
       .catch((error) => {
