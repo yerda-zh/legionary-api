@@ -267,7 +267,7 @@ app.delete("/delete", (req, res) => {
       });
   })
   .then(() => {
-    res.json("Success");
+    res.json("Successfully deleted account");
   })
   .catch((err) => {
     res.status(400).json("Unable to delete");
