@@ -116,7 +116,7 @@ app.post("/chat", async (req, res) => {
       function_call: { name: "workout_routine" },
     });
 
-    const responseData = JSON.parse(response.choices[0].message.function_call.arguments);
+    const responseData = await JSON.parse(response.choices[0].message.function_call.arguments);
 
     return res.status(200).json({ data: responseData });
   } catch (error) {
@@ -232,7 +232,7 @@ app.put("/save", (req, res) => {
         .update({routine})
         .then((numUpdatedRows) => {
           if (numUpdatedRows > 0) {
-            res.status(200).json("Success");
+            res.status(200).json("Successfully saved workout");
           } else {
             res.status(400).json("No such user");
           }
