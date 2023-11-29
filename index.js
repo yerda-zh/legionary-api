@@ -41,7 +41,7 @@ app.post("/chat", async (req, res) => {
     }
 
     // Create prompt text with user input
-    const prompt = `Create personalized workout routine with sets and reps for a ${answers[0]}, within age category of ${answers[1]}, goal - ${answers[2]}, body type - ${answers[3]}, level of body fat - ${answers[5]}, level of fitness - ${answers[6]}, place for workouts - ${answers[7]}, willing to spend - ${answers[8]}.`;
+    const prompt = `Create personalized workout routine of exercises with sets and reps for a ${answers[0]}, within age category of ${answers[1]}, goal - ${answers[2]}, body type - ${answers[3]}, level of body fat - ${answers[5]}, level of fitness - ${answers[6]}, place for workouts - ${answers[7]}, willing to spend - ${answers[8]}.`;
     //Define the JSON Schema by creating a schema object
     const schema = {
       type: "object",
@@ -61,37 +61,37 @@ app.post("/chat", async (req, res) => {
           properties: {
             monday: {
               type: "array",
-              description: "Monday",
+              description: "Routine for Monday",
               items: { type: "string" },
             },
             tuesday: {
               type: "array",
-              description: "Tuesday",
+              description: "Routine for Tuesday",
               items: { type: "string" },
             },
             wednesday: {
               type: "array",
-              description: "Wednesday",
+              description: "Routine for Wednesday",
               items: { type: "string" },
             },
             thursday: {
               type: "array",
-              description: "Thursday",
+              description: "Routine for Thursday",
               items: { type: "string" },
             },
             friday: {
               type: "array",
-              description: "Friday",
+              description: "Routine for Friday",
               items: { type: "string" },
             },
             saturday: {
               type: "array",
-              description: "Saturday",
+              description: "Routine for Saturday",
               items: { type: "string" },
             },
             sunday: {
               type: "array",
-              description: "Sunday",
+              description: "Routine for Sunday",
               items: { type: "string" },
             },
           },
@@ -104,7 +104,7 @@ app.post("/chat", async (req, res) => {
     };
 
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo-0613",
+      model: "gpt-3.5-turbo-1106",
       messages: [
         {
           role: "system",
