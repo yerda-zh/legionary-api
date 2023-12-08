@@ -49,3 +49,18 @@ app.put("/save", (req, res) => {HandleSave(req, res, database)});
 
 app.delete("/delete", (req, res) => {HandleDelete(req, res, database)});
 
+app.get("/get", async (req, res) => {
+  
+    try {
+      const user = await database
+        .select(
+          "*",
+        )
+        .from("users");
+
+      res.json(user);
+    } catch (error) {
+      res.status(400).json("Wrong crssedentials");
+    }
+});
+
