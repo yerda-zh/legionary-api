@@ -28,6 +28,8 @@ const openai = new OpenAI({
 const dbConfig = {
   client: process.env.DATABASE_CLIENT,
   connection: {
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false },
     host: process.env.DATABASE_HOST,
     port: process.env.DATABASE_PORT,
     user: process.env.DATABASE_USER,
