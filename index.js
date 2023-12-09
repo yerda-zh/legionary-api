@@ -17,7 +17,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-const port = process.env.PORT || 5000;
+const port = process.env.DATABASE_PORT || 5000;
 app.listen(port, () => console.log(`Server listening on port ${port}`));
 
 const openai = new OpenAI({
