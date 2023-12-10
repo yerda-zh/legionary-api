@@ -13,9 +13,14 @@ import { HandleDelete } from "./controllers/delete.js";
 dotenv.config();
 
 const app = express();
-
 app.use(express.json());
-app.use(cors());
+
+const corsOptions = {
+  origin: 'https://legionary.vercel.app',
+  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
+}
+
+app.use(cors(corsOptions));
 
 const port = process.env.DATABASE_PORT || 5000;
 app.listen(port, () => console.log(`Server listening on port ${port}`));
